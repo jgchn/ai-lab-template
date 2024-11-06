@@ -3,7 +3,7 @@ apiVersion: scaffolder.backstage.io/v1beta3
 kind: Template
 metadata:
   name: rag
-  title: RAG Chatbot Application
+  title: RAG Chatbot Application (Jing)
   description: Enhance the capabilities of your Chatbot using a Retrieval-Augmented Generation (RAG) application. Pick from the model servers available or bring your own.
   tags: ["ai", "llamacpp", "vllm", "python", "rag", "database"]
   annotations:
