@@ -18,6 +18,24 @@ spec:
         - name
         - owner
         - modelServer
+        - vectorDBVendor
+        - vectorDBHost
+        - vectorDBPort
+        - vectorDBName
+      ui:order:
+        - name
+        - owner
+        - modelServer
+        - modelNameDeployed
+        - modelEndpoint
+        - modelName
+        - includeModelEndpointSecret
+        - modelEndpointSecretName
+        - modelEndpointSecretKey
+        - vectorDBVendor
+        - vectorDBHost
+        - vectorDBPort
+        - vectorDBName
       properties:
         name:
           title: Name
@@ -42,7 +60,7 @@ spec:
           title: Model Server
           description: |
             llama.cpp: A Python binding of LLM inference in C/C++ with minimal setup. | [Learn more](https://github.com/containers/ai-lab-recipes/tree/main/model_servers/llamacpp_python)
-            
+
             vLLM: A high throughput, memory efficient inference and serving engine with GPU support for LLMs in OpenShift. If you choose vLLM, ensure that your cluster has Nvidia GPU supported (with compute capability 7.0 or higher). Also, it should have enough CPU & memory resources for the model you would like to work with. | [Learn more](https://github.com/rh-aiservices-bu/llm-on-openshift/tree/main/llm-servers/vllm/gpu)
           default: llama.cpp
           type: string
@@ -51,6 +69,27 @@ spec:
             - llama.cpp
           # SED_LLM_SERVER_END
             - Existing model server
+        vectorDBVendor:
+          title: Vector DB Vendor
+          type: string
+          description: Select a vector DB vendor
+          default: ChromaDB
+          enum:
+            - ChromaDB
+            - Milvus
+        vectorDBHost:
+          title: Vector DB Host
+          type: string
+          default: 0.0.0.0
+        vectorDBPort:
+          title: Vector DB Port
+          type: string
+          default: 8000
+        vectorDBName:
+          title: Vector DB Name
+          type: string
+          default: test_collection
+
       dependencies:
         modelServer:
           oneOf:
@@ -118,7 +157,6 @@ spec:
                   type: string
                   enum:
                     - instructlab/granite-7b-lab
-            # SED_LLM_SERVER_END
 
     - title: Application Repository Information
       required:
@@ -225,7 +263,7 @@ spec:
           appPort: 8501
           appRunCommand: "streamlit run rag_app.py"
           modelServiceContainer: quay.io/ai-lab/llamacpp_python:latest
-          modelServicePort: 8001          
+          modelServicePort: 8001
     # Renders all the template variables into the files and directory names and content, and places the result in the workspace.
     - id: fetch-skeleton
       name: Fetch Skeleton
@@ -236,13 +274,13 @@ spec:
         values:
           name: ${{ parameters.name }}
           namespace: ${{ parameters.namespace }}
-          description: Secure Supply Chain Example for RAG Chatbot Application 
+          description: Secure Supply Chain Example for RAG Chatbot Application
           dockerfile: Containerfile
           buildContext: .
           gitopsSecretName: ${{ 'gitops-auth-secret' if parameters.hostType === 'GitHub' else 'gitlab-auth-secret' }}
           image: '${{ parameters.imageRegistry }}/${{ parameters.imageOrg }}/${{ parameters.imageName }}'
           tags: '["ai", "llamacpp", "vllm", "python", "rag", "database"]'
-          owner: ${{ parameters.owner }} 
+          owner: ${{ parameters.owner }}
           repoSlug: '${{ parameters.imageOrg }}/${{ parameters.imageName }}'
           defaultBranch: ${{ parameters.branch }}
     - id: fetch-github-action
@@ -333,7 +371,9 @@ spec:
           # Database is required for the RAG templates
           dbRequired: true
           dbContainer: quay.io/redhat-ai-dev/chroma:latest
-          dbPort: 8000
+          dbPort: ${{ parameters.vectorDBPort }}
+          dbHost: ${{ parameters.vectorDBHost }}
+          dbName: ${{ parameters.vectorDBName }}
           # SED_DB_END
     - action: fs:rename
       id: renameComponentDir

@@ -5,3 +5,4 @@ metadata:
 data:
   VECTORDB_HOST: "${{ values.name }}-database"
   VECTORDB_PORT: "${{ values.dbPort }}"
+  VECTORDB_NAME: "${{ values.dbPort }}"
